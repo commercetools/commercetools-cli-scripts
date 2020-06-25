@@ -60,22 +60,22 @@ async function replaceTaxRate(ctpClient, taxRateDraft, taxCategoryItem) {
 async function getGermanValidTaxRateList(taxCategories, taxRateIdToTaxCategoryMap, isDryRun) {
     let germanTaxRateList = taxCategories
         .flatMap(item => item.rates)
-        .filter(rate => rate.country=='DE')
+        .filter(rate => rate.country ==='DE')
     let validGermanTaxRateList = []
-    if (germanTaxRateList.length==0) {
+    if (germanTaxRateList.length === 0) {
         let errMsg  =   'No valid tax rate from Germany. There is nothing to be done in your project in ' +
                         'respect to VAT.' + '\n'
         console.error(errMsg)
         return validGermanTaxRateList
     }
     let invalidGermanTaxRateList = germanTaxRateList.filter(rate =>
-        rate.amount != taxRate.STANDARD.OLD &&
-        rate.amount != taxRate.REDUCED.OLD)
+        rate.amount !== taxRate.STANDARD.OLD &&
+        rate.amount !== taxRate.REDUCED.OLD)
     validGermanTaxRateList = germanTaxRateList
-        .filter(rate => rate.amount==taxRate.STANDARD.OLD || rate.amount==taxRate.REDUCED.OLD)
+        .filter(rate => rate.amount===taxRate.STANDARD.OLD || rate.amount === taxRate.REDUCED.OLD)
 
-    const standardVATs = validGermanTaxRateList.filter(rate => rate.amount == taxRate.STANDARD.OLD)
-    const reducedVATs = validGermanTaxRateList.filter(rate => rate.amount == taxRate.REDUCED.OLD)
+    const standardVATs = validGermanTaxRateList.filter(rate => rate.amount === taxRate.STANDARD.OLD)
+    const reducedVATs = validGermanTaxRateList.filter(rate => rate.amount === taxRate.REDUCED.OLD)
     let errMsg  = null
     if (invalidGermanTaxRateList.length>0) {
         errMsg  = 'We are sorry, we would have to ask you to change the vat manually if applicable. ' +
@@ -144,7 +144,7 @@ async function printUpdateJson(taxRateDraft, taxRateIdToTaxCategoryMap ) {
 
 async function processTaxRate(ctpClient, validGermanTaxRateList, taxRateIdToTaxCategoryMap, taxRateType, isDryRun) {
 
-    let taxRateDraftList =  validGermanTaxRateList.filter(rate => rate.amount == taxRateType.OLD)
+    let taxRateDraftList =  validGermanTaxRateList.filter(rate => rate.amount === taxRateType.OLD)
     if (taxRateDraftList.length>=1) {
         console.log('Current tax rate would be replaced as below : ')
         for (const taxRateDraft of taxRateDraftList) {
@@ -186,7 +186,7 @@ async function printPreviewModeWarning() {
     }
 
     // Check update mode / preview mode
-    if (args.length>0 && args[0]=='-update') {
+    if (args.length>0 && args[0] === '-update') {
         configOptions.dryRun = false
     }
 

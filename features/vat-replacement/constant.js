@@ -1,11 +1,11 @@
 const taxRate = {
-    standard : {
-        original : 0.19,
-        new : 0.16
+    STANDARD : {
+        OLD : 0.19,
+        NEW : 0.16
     },
-    reduced : {
-        original : 0.07,
-        new : 0.05
+    REDUCED : {
+        OLD : 0.07,
+        NEW : 0.05
     }
 }
 

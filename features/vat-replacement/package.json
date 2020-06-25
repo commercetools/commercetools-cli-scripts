@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "NodeJS scripts to replace VAT rate for projects in Germany.",
   "main": "run.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "author": "King-Hin Leung",
   "license": "ISC",
   "dependencies": {

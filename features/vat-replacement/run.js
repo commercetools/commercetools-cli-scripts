@@ -57,7 +57,7 @@ async function replaceTaxRate(ctpClient, taxRateDraft, taxCategoryItem) {
     }
 }
 
-async function getGermanValidTaxRateList(taxCategories, rateIdToCategoryMap, isDryRun) {
+async function getGermanValidTaxRateList(taxCategories, taxRateIdToTaxCategoryMap, isDryRun) {
     let germanTaxRateList = taxCategories
         .flatMap(item => item.rates)
         .filter(rate => rate.country=='DE')
@@ -80,48 +80,48 @@ async function getGermanValidTaxRateList(taxCategories, rateIdToCategoryMap, isD
     if (invalidGermanTaxRateList.length>0) {
         errMsg  = 'We are sorry, we would have to ask you to change the vat manually if applicable. ' +
             'There seems to be a special case.' + '\n'
-        errMsg += await buildTaxRateDraftJson(invalidGermanTaxRateList, rateIdToCategoryMap)
+        errMsg += await buildTaxRateDraftJson(invalidGermanTaxRateList, taxRateIdToTaxCategoryMap)
         console.error(errMsg)
     } else if (standardVATs.length > 1) {
         errMsg  = 'We are sorry but there are several tax rates for "DE" with a percentage ' +
             'of ' + taxRate.STANDARD.OLD*100 + ' percent. Please update the tax rate manually. ' + '\n'
-        errMsg += await buildTaxRateDraftJson(standardVATs, rateIdToCategoryMap)
+        errMsg += await buildTaxRateDraftJson(standardVATs, taxRateIdToTaxCategoryMap)
         console.error(errMsg)
     } else if (reducedVATs.length > 1) {
         errMsg  = 'We are sorry but there are several tax rates for "DE" with a percentage ' +
             'of ' + taxRate.REDUCED.OLD*100 + ' percent. Please update the tax rate manually. ' + '\n'
-        errMsg += await buildTaxRateDraftJson(reducedVATs, rateIdToCategoryMap)
+        errMsg += await buildTaxRateDraftJson(reducedVATs, taxRateIdToTaxCategoryMap)
         console.error(errMsg)
     }
 
     return validGermanTaxRateList
 }
 
-async function buildTaxRateDraftJson(taxRateList, rateIdToCategoryMap) {
+async function buildTaxRateDraftJson(taxRateList, taxRateIdToTaxCategoryMap) {
     let msg = ''
     taxRateList.forEach(item => {
-        msg += 'Tax Category Name : '+rateIdToCategoryMap.get(item.id).name + '\n'
+        msg += 'Tax Category Name : '+taxRateIdToTaxCategoryMap.get(item.id).name + '\n'
         msg += JSON.stringify(item) + '\n'
     })
     return msg
 }
 
-async function buildRateIdToCategoryMap(items) {
+async function buildTaxRateIdToTaxCategoryMap(items) {
     const map = new Map()
     for (const item of items) {
-        let categoryItem = {
+        let taxCategoryItem = {
             id : item.id,
             version : item.version,
             name : item.name,
             key : item.key
         }
-        item.rates.forEach( rate => map.set(rate.id,  categoryItem))
+        item.rates.forEach( rate => map.set(rate.id,  taxCategoryItem))
     }
     return map
 }
 
-async function printUpdateJson(taxRateDraft, rateIdToCategoryMap ) {
-    const taxCategoryItem = rateIdToCategoryMap.get(taxRateDraft.id)
+async function printUpdateJson(taxRateDraft, taxRateIdToTaxCategoryMap ) {
+    const taxCategoryItem = taxRateIdToTaxCategoryMap.get(taxRateDraft.id)
 
     const updateJsonObj = {
         version : taxCategoryItem.version,
@@ -142,17 +142,17 @@ async function printUpdateJson(taxRateDraft, rateIdToCategoryMap ) {
 
 }
 
-async function processTaxRate(ctpClient, validGermanTaxRateList, rateIdToCategoryMap, taxRateType, isDryRun) {
+async function processTaxRate(ctpClient, validGermanTaxRateList, taxRateIdToTaxCategoryMap, taxRateType, isDryRun) {
 
     let taxRateDraftList =  validGermanTaxRateList.filter(rate => rate.amount == taxRateType.OLD)
     if (taxRateDraftList.length>=1) {
         console.log('Current tax rate would be replaced as below : ')
         for (const taxRateDraft of taxRateDraftList) {
             taxRateDraft.amount  = taxRateType.NEW
-            await printUpdateJson(taxRateDraft, rateIdToCategoryMap)
+            await printUpdateJson(taxRateDraft, taxRateIdToTaxCategoryMap)
             if (!isDryRun) {
                 console.log('Start to replace tax rate ... ')
-                await replaceTaxRate(ctpClient, taxRateDraft, rateIdToCategoryMap.get(taxRateDraft.id))
+                await replaceTaxRate(ctpClient, taxRateDraft, taxRateIdToTaxCategoryMap.get(taxRateDraft.id))
                 console.log('Update finished')
             }
         }
@@ -196,15 +196,14 @@ async function printPreviewModeWarning() {
     let taxCategories = await getTaxCategories(ctpClient)
 
     // Initialize tax rate id <-> tax category mapping
-    const rateIdToCategoryMap = await buildRateIdToCategoryMap(taxCategories)
-    let validGermanTaxRateList = [];
+    const taxRateIdToTaxCategoryMap = await buildTaxRateIdToTaxCategoryMap(taxCategories)
 
     // Validate the existing tax categories and returned valid german tax rates in project settings
-    validGermanTaxRateList = await getGermanValidTaxRateList(taxCategories, rateIdToCategoryMap, configOptions.dryRun)
+    const validGermanTaxRateList = await getGermanValidTaxRateList(taxCategories, taxRateIdToTaxCategoryMap, configOptions.dryRun)
 
     // Printout Json format TaxRateDraft and update it if it is not dry run.
-    await processTaxRate(ctpClient, validGermanTaxRateList, rateIdToCategoryMap, taxRate.STANDARD, configOptions.dryRun)
-    await processTaxRate(ctpClient, validGermanTaxRateList, rateIdToCategoryMap, taxRate.REDUCED, configOptions.dryRun)
+    await processTaxRate(ctpClient, validGermanTaxRateList, taxRateIdToTaxCategoryMap, taxRate.STANDARD, configOptions.dryRun)
+    await processTaxRate(ctpClient, validGermanTaxRateList, taxRateIdToTaxCategoryMap, taxRate.REDUCED, configOptions.dryRun)
 
 
     if (configOptions.dryRun) {

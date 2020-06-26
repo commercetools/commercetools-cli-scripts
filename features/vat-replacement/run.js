@@ -53,7 +53,7 @@ async function replaceTaxRate(ctpClient, taxCategoryId, updateJsonObj) {
     }
 }
 
-async function getGermanValidTaxRateList(taxCategories, taxRateIdToTaxCategoryMap, isDryRun) {
+async function getGermanValidTaxRateList(taxCategories, taxRateIdToTaxCategoryMap) {
     let germanTaxRateList = taxCategories
         .flatMap(item => item.rates)
         .filter(rate => rate.country ==='DE')
@@ -210,7 +210,7 @@ async function printPreviewModeWarning() {
 
     // Validate the existing tax categories and returned valid german tax rates in project settings
     const validGermanTaxRateList = await getGermanValidTaxRateList(taxCategories,
-        taxRateIdToTaxCategoryMap, configOptions.dryRun)
+        taxRateIdToTaxCategoryMap)
 
     // Printout Json format TaxRateDraft and update it if it is not dry run.
     await processTaxRate(ctpClient, validGermanTaxRateList, taxRateIdToTaxCategoryMap,

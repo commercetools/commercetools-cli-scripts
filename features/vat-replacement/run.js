@@ -17,7 +17,6 @@ async function getTaxCategories (ctpClient) {
                                     name, 
                                     amount, 
                                     country, 
-                                    state, 
                                     includedInPrice,
                                     id
                                 },

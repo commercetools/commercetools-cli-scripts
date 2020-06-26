@@ -4,7 +4,7 @@
   "description": "NodeJS scripts to replace VAT rate for projects in Germany.",
   "main": "run.js",
   "author": "King-Hin Leung",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "bluebird": "^3.7.2"
   }

@@ -83,12 +83,14 @@ async function getGermanValidTaxRateList(taxCategories, taxRateIdToTaxCategoryMa
             'There seems to be a special case.' + '\n'
         errMsg += await buildTaxRateDraftJson(invalidGermanTaxRateList, taxRateIdToTaxCategoryMap)
         console.error(errMsg)
-    } else if (standardVATs.length > 1) {
+    }
+    if (standardVATs.length > 1) {
         errMsg  = 'We are sorry but there are several tax rates for "DE" with a percentage ' +
             'of ' + vatConstant.TAX_RATE_STANDARD_OLD*100 + ' percent. Please update the tax rate manually. ' + '\n'
         errMsg += await buildTaxRateDraftJson(standardVATs, taxRateIdToTaxCategoryMap)
         console.error(errMsg)
-    } else if (reducedVATs.length > 1) {
+    }
+    if (reducedVATs.length > 1) {
         errMsg  = 'We are sorry but there are several tax rates for "DE" with a percentage ' +
             'of ' + vatConstant.TAX_RATE_REDUCED_OLD*100 + ' percent. Please update the tax rate manually. ' + '\n'
         errMsg += await buildTaxRateDraftJson(reducedVATs, taxRateIdToTaxCategoryMap)
@@ -159,11 +161,13 @@ async function processTaxRate(ctpClient, validGermanTaxRateList, taxRateIdToTaxC
         console.log('Current tax rate would be replaced as below : ')
         for (const taxRateDraft of taxRateDraftList) {
             taxRateDraft.amount  = newTaxRate
-            await printUpdateJson(taxRateDraft, taxRateIdToTaxCategoryMap)
+
             if (!isDryRun) {
                 console.log('Start to replace tax rate ... ')
                 await replaceTaxRate(ctpClient, taxRateDraft, taxRateIdToTaxCategoryMap.get(taxRateDraft.id))
                 console.log('Update finished')
+            } else {
+                await printUpdateJson(taxRateDraft, taxRateIdToTaxCategoryMap)
             }
         }
 

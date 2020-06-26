@@ -44,14 +44,11 @@ async function getTaxCategories (ctpClient) {
     }
 }
 
-async function replaceTaxRate(ctpClient, taxRateDraft, taxCategoryItem) {
+async function replaceTaxRate(ctpClient, taxCategoryId, updateJsonObj) {
     try {
-        const actions = [{
-            action : 'replaceTaxRate',
-            taxRateId : taxRateDraft.id,
-            taxRate : taxRateDraft
-        }]
-        await ctpClient.update(ctpClient.builder.taxCategories, taxCategoryItem.id, taxCategoryItem.version, actions)
+
+        await ctpClient.update(ctpClient.builder.taxCategories, taxCategoryId,
+            updateJsonObj.version, updateJsonObj.actions)
     } catch (e) {
         console.log(e)
     }
@@ -123,7 +120,7 @@ async function buildTaxRateIdToTaxCategoryMap(items) {
     return map
 }
 
-async function printUpdateJson(taxRateDraft, taxRateIdToTaxCategoryMap ) {
+async function getUpdateJsonObj(taxRateDraft, taxRateIdToTaxCategoryMap ) {
     const taxCategoryItem = taxRateIdToTaxCategoryMap.get(taxRateDraft.id)
 
     const updateJsonObj = {
@@ -141,7 +138,7 @@ async function printUpdateJson(taxRateDraft, taxRateIdToTaxCategoryMap ) {
             }
         ]
     }
-    console.log(JSON.stringify(updateJsonObj))
+    return updateJsonObj
 
 }
 
@@ -158,16 +155,16 @@ async function processTaxRate(ctpClient, validGermanTaxRateList, taxRateIdToTaxC
 
     let taxRateDraftList =  validGermanTaxRateList.filter(rate => rate.amount === oldTaxRate)
     if (taxRateDraftList.length>=1) {
-        console.log('Current tax rate would be replaced as below : ')
         for (const taxRateDraft of taxRateDraftList) {
             taxRateDraft.amount  = newTaxRate
-
+            const updateJsonObj = await getUpdateJsonObj(taxRateDraft, taxRateIdToTaxCategoryMap)
             if (!isDryRun) {
                 console.log('Start to replace tax rate ... ')
-                await replaceTaxRate(ctpClient, taxRateDraft, taxRateIdToTaxCategoryMap.get(taxRateDraft.id))
+                await replaceTaxRate(ctpClient, taxRateIdToTaxCategoryMap.get(taxRateDraft.id).id, updateJsonObj)
                 console.log('Update finished')
             } else {
-                await printUpdateJson(taxRateDraft, taxRateIdToTaxCategoryMap)
+                console.log('Current tax rate would be replaced as below : ')
+                console.log(JSON.stringify(updateJsonObj))
             }
         }
 

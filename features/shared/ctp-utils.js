@@ -8,8 +8,8 @@ const {createRequestBuilder} = require('@commercetools/api-request-builder')
 const _ = require('lodash')
 
 function createCtpClient({clientId, clientSecret, projectKey, concurrency = 4}) {
-    const AUTH_HOST = 'https://auth.europe-west1.gcp.commercetools.com'
-    const API_HOST = 'https://api.europe-west1.gcp.commercetools.com'
+    const AUTH_HOST = process.env.AUTH_HOST || 'https://auth.europe-west1.gcp.commercetools.com'
+    const API_HOST = process.env.API_HOST || 'https://api.europe-west1.gcp.commercetools.com'
     const authMiddleware = createAuthMiddlewareForClientCredentialsFlow({
         host: AUTH_HOST,
         projectKey,

@@ -141,7 +141,7 @@ async function getUpdateJsonObj(taxRateDraft, taxRateIdToTaxCategoryMap ) {
 
 }
 
-async function processTaxRate(ctpClient, validGermanTaxRateList, taxRateIdToTaxCategoryMap, taxRateType, isDryRun) {
+async function processTaxRate({ctpClient, validGermanTaxRateList, taxRateIdToTaxCategoryMap, taxRateType, isDryRun}) {
     let oldTaxRate =  0
     let newTaxRate =  0
     if (taxRateType === vatConstant.TAX_RATE_TYPE_STANDARD) {
@@ -217,10 +217,20 @@ async function initConfigOptions() {
         taxRateIdToTaxCategoryMap)
 
     // Printout Json format TaxRateDraft and update it if it is not dry run.
-    await processTaxRate(ctpClient, validGermanTaxRateList, taxRateIdToTaxCategoryMap,
-        vatConstant.TAX_RATE_TYPE_STANDARD, configOptions.dryRun)
-    await processTaxRate(ctpClient, validGermanTaxRateList, taxRateIdToTaxCategoryMap,
-        vatConstant.TAX_RATE_TYPE_REDUCED, configOptions.dryRun)
+    await processTaxRate({
+        ctpClient: ctpClient,
+        validGermanTaxRateList: validGermanTaxRateList,
+        taxRateIdToTaxCategoryMap: taxRateIdToTaxCategoryMap,
+        taxRateType: vatConstant.TAX_RATE_TYPE_STANDARD,
+        isDryRun: configOptions.dryRun
+    })
+    await processTaxRate({
+        ctpClient: ctpClient,
+        validGermanTaxRateList: validGermanTaxRateList,
+        taxRateIdToTaxCategoryMap: taxRateIdToTaxCategoryMap,
+        taxRateType: vatConstant.TAX_RATE_TYPE_REDUCED,
+        isDryRun: configOptions.dryRun
+    })
 
     if (configOptions.dryRun) {
         await printPreviewModeWarning()

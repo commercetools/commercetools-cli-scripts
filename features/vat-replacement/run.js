@@ -2,7 +2,7 @@ const ctpUtils = require('../shared/ctp-utils')
 const constant = require('./constant')
 const Promise = require('bluebird')
 
-const taxRate = constant.taxRate
+const vatConstant = constant.vatConstant
 
 async function getTaxCategories (ctpClient) {
     const params = {
@@ -69,13 +69,14 @@ async function getGermanValidTaxRateList(taxCategories, taxRateIdToTaxCategoryMa
         return validGermanTaxRateList
     }
     let invalidGermanTaxRateList = germanTaxRateList.filter(rate =>
-        rate.amount !== taxRate.STANDARD.OLD &&
-        rate.amount !== taxRate.REDUCED.OLD)
+        rate.amount !== vatConstant.TAX_RATE_STANDARD_OLD &&
+        rate.amount !== vatConstant.TAX_RATE_REDUCED_OLD)
     validGermanTaxRateList = germanTaxRateList
-        .filter(rate => rate.amount===taxRate.STANDARD.OLD || rate.amount === taxRate.REDUCED.OLD)
+        .filter(rate => rate.amount===vatConstant.TAX_RATE_STANDARD_OLD ||
+            rate.amount === vatConstant.TAX_RATE_REDUCED_OLD)
 
-    const standardVATs = validGermanTaxRateList.filter(rate => rate.amount === taxRate.STANDARD.OLD)
-    const reducedVATs = validGermanTaxRateList.filter(rate => rate.amount === taxRate.REDUCED.OLD)
+    const standardVATs = validGermanTaxRateList.filter(rate => rate.amount === vatConstant.TAX_RATE_STANDARD_OLD)
+    const reducedVATs = validGermanTaxRateList.filter(rate => rate.amount === vatConstant.TAX_RATE_REDUCED_OLD)
     let errMsg  = null
     if (invalidGermanTaxRateList.length>0) {
         errMsg  = 'We are sorry, we would have to ask you to change the vat manually if applicable. ' +
@@ -84,12 +85,12 @@ async function getGermanValidTaxRateList(taxCategories, taxRateIdToTaxCategoryMa
         console.error(errMsg)
     } else if (standardVATs.length > 1) {
         errMsg  = 'We are sorry but there are several tax rates for "DE" with a percentage ' +
-            'of ' + taxRate.STANDARD.OLD*100 + ' percent. Please update the tax rate manually. ' + '\n'
+            'of ' + vatConstant.TAX_RATE_STANDARD_OLD*100 + ' percent. Please update the tax rate manually. ' + '\n'
         errMsg += await buildTaxRateDraftJson(standardVATs, taxRateIdToTaxCategoryMap)
         console.error(errMsg)
     } else if (reducedVATs.length > 1) {
         errMsg  = 'We are sorry but there are several tax rates for "DE" with a percentage ' +
-            'of ' + taxRate.REDUCED.OLD*100 + ' percent. Please update the tax rate manually. ' + '\n'
+            'of ' + vatConstant.TAX_RATE_REDUCED_OLD*100 + ' percent. Please update the tax rate manually. ' + '\n'
         errMsg += await buildTaxRateDraftJson(reducedVATs, taxRateIdToTaxCategoryMap)
         console.error(errMsg)
     }
@@ -143,12 +144,21 @@ async function printUpdateJson(taxRateDraft, taxRateIdToTaxCategoryMap ) {
 }
 
 async function processTaxRate(ctpClient, validGermanTaxRateList, taxRateIdToTaxCategoryMap, taxRateType, isDryRun) {
+    let oldTaxRate =  0
+    let newTaxRate =  0
+    if (taxRateType === vatConstant.TAX_RATE_TYPE_STANDARD) {
+        oldTaxRate = vatConstant.TAX_RATE_STANDARD_OLD
+        newTaxRate = vatConstant.TAX_RATE_STANDARD_NEW
+    } else {
+        oldTaxRate = vatConstant.TAX_RATE_REDUCED_OLD
+        newTaxRate = vatConstant.TAX_RATE_REDUCED_NEW
+    }
 
-    let taxRateDraftList =  validGermanTaxRateList.filter(rate => rate.amount === taxRateType.OLD)
+    let taxRateDraftList =  validGermanTaxRateList.filter(rate => rate.amount === oldTaxRate)
     if (taxRateDraftList.length>=1) {
         console.log('Current tax rate would be replaced as below : ')
         for (const taxRateDraft of taxRateDraftList) {
-            taxRateDraft.amount  = taxRateType.NEW
+            taxRateDraft.amount  = newTaxRate
             await printUpdateJson(taxRateDraft, taxRateIdToTaxCategoryMap)
             if (!isDryRun) {
                 console.log('Start to replace tax rate ... ')
@@ -199,12 +209,14 @@ async function printPreviewModeWarning() {
     const taxRateIdToTaxCategoryMap = await buildTaxRateIdToTaxCategoryMap(taxCategories)
 
     // Validate the existing tax categories and returned valid german tax rates in project settings
-    const validGermanTaxRateList = await getGermanValidTaxRateList(taxCategories, taxRateIdToTaxCategoryMap, configOptions.dryRun)
+    const validGermanTaxRateList = await getGermanValidTaxRateList(taxCategories,
+        taxRateIdToTaxCategoryMap, configOptions.dryRun)
 
     // Printout Json format TaxRateDraft and update it if it is not dry run.
-    await processTaxRate(ctpClient, validGermanTaxRateList, taxRateIdToTaxCategoryMap, taxRate.STANDARD, configOptions.dryRun)
-    await processTaxRate(ctpClient, validGermanTaxRateList, taxRateIdToTaxCategoryMap, taxRate.REDUCED, configOptions.dryRun)
-
+    await processTaxRate(ctpClient, validGermanTaxRateList, taxRateIdToTaxCategoryMap,
+        vatConstant.TAX_RATE_TYPE_STANDARD, configOptions.dryRun)
+    await processTaxRate(ctpClient, validGermanTaxRateList, taxRateIdToTaxCategoryMap,
+        vatConstant.TAX_RATE_TYPE_REDUCED, configOptions.dryRun)
 
     if (configOptions.dryRun) {
         await printPreviewModeWarning()

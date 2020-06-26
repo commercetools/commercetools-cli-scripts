@@ -154,7 +154,8 @@ async function processTaxRate({ctpClient, validGermanTaxRateList, taxRateIdToTax
 
     let taxRateDraftList =  validGermanTaxRateList.filter(rate => rate.amount === oldTaxRate)
     if (taxRateDraftList.length>=1) {
-        for (const taxRateDraft of taxRateDraftList) {
+        let clonedTaxRateDraftList = JSON.parse(JSON.stringify(taxRateDraftList))
+        for (const taxRateDraft of clonedTaxRateDraftList) {
             taxRateDraft.amount  = newTaxRate
             const updateJsonObj = await getUpdateJsonObj(taxRateDraft, taxRateIdToTaxCategoryMap)
             if (!isDryRun) {

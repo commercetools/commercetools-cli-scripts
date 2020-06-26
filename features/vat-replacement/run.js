@@ -178,7 +178,8 @@ async function printPreviewModeWarning() {
         'before running the script in update mode.')
     console.log('********************************************************************')
 }
-(async function main() {
+
+async function initConfigOptions() {
     const args = process.argv.slice(2);
     const configOptions = {
         ctp : {
@@ -199,8 +200,10 @@ async function printPreviewModeWarning() {
     if (args.length>0 && args[0] === '-update') {
         configOptions.dryRun = false
     }
-
-    const ctpClient = ctpUtils.setUpClient(configOptions)
+    return configOptions
+}
+(async function main() {
+    const ctpClient = ctpUtils.setUpClient(initConfigOptions())
 
     // Retrieve tax category list in current project
     let taxCategories = await getTaxCategories(ctpClient)

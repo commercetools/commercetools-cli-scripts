@@ -203,7 +203,8 @@ async function initConfigOptions() {
     return configOptions
 }
 (async function main() {
-    const ctpClient = ctpUtils.setUpClient(initConfigOptions())
+    const configOptions = initConfigOptions()
+    const ctpClient = ctpUtils.setUpClient(configOptions)
 
     // Retrieve tax category list in current project
     let taxCategories = await getTaxCategories(ctpClient)

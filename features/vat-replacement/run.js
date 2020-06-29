@@ -203,17 +203,15 @@ async function initConfigOptions() {
     }
     return configOptions
 }
+
 (async function main() {
     const configOptions = initConfigOptions()
     const ctpClient = ctpUtils.setUpClient(configOptions)
 
-    // Retrieve tax category list in current project
     let taxCategories = await getTaxCategories(ctpClient)
 
-    // Initialize tax rate id <-> tax category mapping
     const taxRateIdToTaxCategoryMap = await buildTaxRateIdToTaxCategoryMap(taxCategories)
 
-    // Validate the existing tax categories and returned valid german tax rates in project settings
     const validGermanTaxRateList = await getGermanValidTaxRateList(taxCategories,
         taxRateIdToTaxCategoryMap)
 

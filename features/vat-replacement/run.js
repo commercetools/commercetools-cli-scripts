@@ -56,7 +56,7 @@ async function replaceTaxRate(ctpClient, taxCategoryId, updateJsonObj) {
 // Filter the tax category list to obtain a list of tax rates which has following criteria :
 // 1. country code = 'DE'
 // 2. tax rate = 19% or 7%
-async function getGermanValidTaxRateList(taxCategories, taxRateIdToTaxCategoryMap) {
+function getGermanValidTaxRateList(taxCategories, taxRateIdToTaxCategoryMap) {
     let germanTaxRateList = taxCategories
         .flatMap(item => item.rates)
         .filter(rate => rate.country ==='DE')
@@ -80,26 +80,26 @@ async function getGermanValidTaxRateList(taxCategories, taxRateIdToTaxCategoryMa
     if (invalidGermanTaxRateList.length>0) {
         errMsg  = 'We are sorry, we would have to ask you to change the vat manually if applicable. ' +
             'There seems to be a special case.' + '\n'
-        errMsg += await buildTaxRateDraftJson(invalidGermanTaxRateList, taxRateIdToTaxCategoryMap)
+        errMsg +=  buildTaxRateDraftJson(invalidGermanTaxRateList, taxRateIdToTaxCategoryMap)
         console.error(errMsg)
     }
     if (standardVATs.length > 1) {
         errMsg  = 'We are sorry but there are several tax rates for "DE" with a percentage ' +
             'of ' + vatConstant.TAX_RATE_STANDARD_OLD*100 + ' percent. Please update the tax rate manually. ' + '\n'
-        errMsg += await buildTaxRateDraftJson(standardVATs, taxRateIdToTaxCategoryMap)
+        errMsg += buildTaxRateDraftJson(standardVATs, taxRateIdToTaxCategoryMap)
         console.error(errMsg)
     }
     if (reducedVATs.length > 1) {
         errMsg  = 'We are sorry but there are several tax rates for "DE" with a percentage ' +
             'of ' + vatConstant.TAX_RATE_REDUCED_OLD*100 + ' percent. Please update the tax rate manually. ' + '\n'
-        errMsg += await buildTaxRateDraftJson(reducedVATs, taxRateIdToTaxCategoryMap)
+        errMsg += buildTaxRateDraftJson(reducedVATs, taxRateIdToTaxCategoryMap)
         console.error(errMsg)
     }
 
     return validGermanTaxRateList
 }
 
-async function buildTaxRateDraftJson(taxRateList, taxRateIdToTaxCategoryMap) {
+function buildTaxRateDraftJson(taxRateList, taxRateIdToTaxCategoryMap) {
     let msg = ''
     taxRateList.forEach(item => {
         msg += 'Tax Category Name : '+taxRateIdToTaxCategoryMap.get(item.id).name + '\n'
@@ -108,7 +108,7 @@ async function buildTaxRateDraftJson(taxRateList, taxRateIdToTaxCategoryMap) {
     return msg
 }
 
-async function buildTaxRateIdToTaxCategoryMap(items) {
+function buildTaxRateIdToTaxCategoryMap(items) {
     const map = new Map()
     for (const item of items) {
         let taxCategoryItem = {
@@ -200,10 +200,9 @@ async function initConfigOptions() {
 
     let taxCategories = await getTaxCategories(ctpClient)
 
-    const taxRateIdToTaxCategoryMap = await buildTaxRateIdToTaxCategoryMap(taxCategories)
+    const taxRateIdToTaxCategoryMap = buildTaxRateIdToTaxCategoryMap(taxCategories)
 
-    const validGermanTaxRateList = await getGermanValidTaxRateList(taxCategories,
-        taxRateIdToTaxCategoryMap)
+    const validGermanTaxRateList = getGermanValidTaxRateList(taxCategories, taxRateIdToTaxCategoryMap)
 
     let taxRateDraftList =  validGermanTaxRateList.filter(rate => rate.amount === vatConstant.TAX_RATE_STANDARD_OLD)
     if (taxRateDraftList.length>=1) {

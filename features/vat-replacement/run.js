@@ -144,33 +144,20 @@ async function getUpdateJsonObj(taxRateDraft, taxRateIdToTaxCategoryMap ) {
 
 }
 
-async function processTaxRate({ctpClient, validGermanTaxRateList, taxRateIdToTaxCategoryMap, taxRateType, isDryRun}) {
-    let oldTaxRate =  0
-    let newTaxRate =  0
-    if (taxRateType === vatConstant.TAX_RATE_TYPE_STANDARD) {
-        oldTaxRate = vatConstant.TAX_RATE_STANDARD_OLD
-        newTaxRate = vatConstant.TAX_RATE_STANDARD_NEW
-    } else {
-        oldTaxRate = vatConstant.TAX_RATE_REDUCED_OLD
-        newTaxRate = vatConstant.TAX_RATE_REDUCED_NEW
-    }
-
-    let taxRateDraftList =  validGermanTaxRateList.filter(rate => rate.amount === oldTaxRate)
-    if (taxRateDraftList.length>=1) {
-        let clonedTaxRateDraftList = JSON.parse(JSON.stringify(taxRateDraftList))
-        for (const taxRateDraft of clonedTaxRateDraftList) {
-            taxRateDraft.amount  = newTaxRate
-            const updateJsonObj = await getUpdateJsonObj(taxRateDraft, taxRateIdToTaxCategoryMap)
-            if (!isDryRun) {
-                console.log('Start to replace tax rate ... ')
-                await replaceTaxRate(ctpClient, taxRateIdToTaxCategoryMap.get(taxRateDraft.id).id, updateJsonObj)
-                console.log('Update finished')
-            } else {
-                console.log('Current tax rate would be replaced as below : ')
-                console.log(JSON.stringify(updateJsonObj))
-            }
+async function processTaxRate({ctpClient, taxRateDraftList, taxRateIdToTaxCategoryMap, oldTaxRate, newTaxRate,
+                                  isDryRun}) {
+    let clonedTaxRateDraftList = JSON.parse(JSON.stringify(taxRateDraftList))
+    for (const taxRateDraft of clonedTaxRateDraftList) {
+        taxRateDraft.amount  = newTaxRate
+        const updateJsonObj = await getUpdateJsonObj(taxRateDraft, taxRateIdToTaxCategoryMap)
+        if (!isDryRun) {
+            console.log('Start to replace tax rate ... ')
+            await replaceTaxRate(ctpClient, taxRateIdToTaxCategoryMap.get(taxRateDraft.id).id, updateJsonObj)
+            console.log('Update finished')
+        } else {
+            console.log('Current tax rate would be replaced as below : ')
+            console.log(JSON.stringify(updateJsonObj))
         }
-
     }
 }
 
@@ -208,7 +195,7 @@ async function initConfigOptions() {
 }
 
 (async function main() {
-    const configOptions = initConfigOptions()
+    const configOptions = await initConfigOptions()
     const ctpClient = ctpUtils.setUpClient(configOptions)
 
     let taxCategories = await getTaxCategories(ctpClient)
@@ -218,21 +205,30 @@ async function initConfigOptions() {
     const validGermanTaxRateList = await getGermanValidTaxRateList(taxCategories,
         taxRateIdToTaxCategoryMap)
 
-    // Printout Json format TaxRateDraft and update it if it is not dry run.
-    await processTaxRate({
-        ctpClient: ctpClient,
-        validGermanTaxRateList: validGermanTaxRateList,
-        taxRateIdToTaxCategoryMap: taxRateIdToTaxCategoryMap,
-        taxRateType: vatConstant.TAX_RATE_TYPE_STANDARD,
-        isDryRun: configOptions.dryRun
-    })
-    await processTaxRate({
-        ctpClient: ctpClient,
-        validGermanTaxRateList: validGermanTaxRateList,
-        taxRateIdToTaxCategoryMap: taxRateIdToTaxCategoryMap,
-        taxRateType: vatConstant.TAX_RATE_TYPE_REDUCED,
-        isDryRun: configOptions.dryRun
-    })
+    let taxRateDraftList =  validGermanTaxRateList.filter(rate => rate.amount === vatConstant.TAX_RATE_STANDARD_OLD)
+    if (taxRateDraftList.length>=1) {
+        // Printout Json format TaxRateDraft and update it if it is not dry run.
+        await processTaxRate({
+            ctpClient: ctpClient,
+            taxRateDraftList: taxRateDraftList,
+            taxRateIdToTaxCategoryMap: taxRateIdToTaxCategoryMap,
+            oldTaxRate : vatConstant.TAX_RATE_STANDARD_OLD,
+            newTaxRate : vatConstant.TAX_RATE_STANDARD_NEW,
+            isDryRun: configOptions.dryRun
+        })
+    }
+
+    taxRateDraftList =  validGermanTaxRateList.filter(rate => rate.amount === vatConstant.TAX_RATE_REDUCED_OLD)
+    if (taxRateDraftList.length>=1) {
+        await processTaxRate({
+            ctpClient: ctpClient,
+            taxRateDraftList: taxRateDraftList,
+            taxRateIdToTaxCategoryMap: taxRateIdToTaxCategoryMap,
+            oldTaxRate: vatConstant.TAX_RATE_REDUCED_OLD,
+            newTaxRate: vatConstant.TAX_RATE_REDUCED_NEW,
+            isDryRun: configOptions.dryRun
+        })
+    }
 
     if (configOptions.dryRun) {
         await printPreviewModeWarning()

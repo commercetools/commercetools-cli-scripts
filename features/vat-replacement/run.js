@@ -175,7 +175,7 @@ function printPreviewModeWarning() {
     console.log('********************************************************************')
 }
 
-async function initConfigOptions() {
+function initConfigOptions() {
     const args = process.argv.slice(2);
     const configOptions = {
         ctp : {
@@ -200,7 +200,7 @@ async function initConfigOptions() {
 }
 
 (async function main() {
-    const configOptions = await initConfigOptions()
+    const configOptions = initConfigOptions()
     const ctpClient = ctpUtils.setUpClient(configOptions)
 
     let taxCategories = await getTaxCategories(ctpClient)

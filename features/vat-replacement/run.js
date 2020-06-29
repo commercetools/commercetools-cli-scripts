@@ -84,19 +84,23 @@ function getGermanValidTaxRateList(taxCategories, taxRateIdToTaxCategoryMap) {
         console.error(errMsg)
     }
     if (standardVATs.length > 1) {
-        errMsg  = 'We are sorry but there are several tax rates for "DE" with a percentage ' +
-            'of ' + vatConstant.TAX_RATE_STANDARD_OLD*100 + ' percent. Please update the tax rate manually. ' + '\n'
-        errMsg += buildTaxRateDraftJson(standardVATs, taxRateIdToTaxCategoryMap)
-        console.error(errMsg)
+        printRedundantTaxRateErrorMsg(vatConstant.TAX_RATE_STANDARD_OLD*100, standardVATs,
+            taxRateIdToTaxCategoryMap)
     }
     if (reducedVATs.length > 1) {
-        errMsg  = 'We are sorry but there are several tax rates for "DE" with a percentage ' +
-            'of ' + vatConstant.TAX_RATE_REDUCED_OLD*100 + ' percent. Please update the tax rate manually. ' + '\n'
-        errMsg += buildTaxRateDraftJson(reducedVATs, taxRateIdToTaxCategoryMap)
-        console.error(errMsg)
+        printRedundantTaxRateErrorMsg(vatConstant.TAX_RATE_REDUCED_OLD*100, reducedVATs,
+            taxRateIdToTaxCategoryMap)
     }
 
     return validGermanTaxRateList
+}
+
+// Print out error message if more than one standard/reduced german VAT are found
+function printRedundantTaxRateErrorMsg(taxRateInPercentage, vatList, taxRateIdToTaxCategoryMap) {
+    let errMsg  = 'We are sorry but there are several tax rates for "DE" with a percentage ' +
+        'of ' + taxRateInPercentage + ' percent. Please update the tax rate manually. ' + '\n'
+    errMsg += buildTaxRateDraftJson(vatList, taxRateIdToTaxCategoryMap)
+    console.error(errMsg)
 }
 
 function buildTaxRateDraftJson(taxRateList, taxRateIdToTaxCategoryMap) {
@@ -144,6 +148,7 @@ async function getUpdateJsonObj(taxRateDraft, taxRateIdToTaxCategoryMap ) {
 
 }
 
+// Printout Json format TaxRateDraft and update it if it is not dry run.
 async function processTaxRate({ctpClient, taxRateDraftList, taxRateIdToTaxCategoryMap, oldTaxRate, newTaxRate,
                                   isDryRun}) {
     let clonedTaxRateDraftList = JSON.parse(JSON.stringify(taxRateDraftList))
@@ -206,7 +211,6 @@ async function initConfigOptions() {
 
     let taxRateDraftList =  validGermanTaxRateList.filter(rate => rate.amount === vatConstant.TAX_RATE_STANDARD_OLD)
     if (taxRateDraftList.length>=1) {
-        // Printout Json format TaxRateDraft and update it if it is not dry run.
         await processTaxRate({
             ctpClient: ctpClient,
             taxRateDraftList: taxRateDraftList,

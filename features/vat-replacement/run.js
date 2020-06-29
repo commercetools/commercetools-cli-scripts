@@ -53,6 +53,9 @@ async function replaceTaxRate(ctpClient, taxCategoryId, updateJsonObj) {
     }
 }
 
+// Filter the tax category list to obtain a list of tax rates which has following criteria :
+// 1. country code = 'DE'
+// 2. tax rate = 19% or 7%
 async function getGermanValidTaxRateList(taxCategories, taxRateIdToTaxCategoryMap) {
     let germanTaxRateList = taxCategories
         .flatMap(item => item.rates)

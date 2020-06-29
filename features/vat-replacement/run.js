@@ -161,7 +161,7 @@ async function processTaxRate({ctpClient, taxRateDraftList, taxRateIdToTaxCatego
     }
 }
 
-async function printPreviewModeWarning() {
+function printPreviewModeWarning() {
     console.log('********************************************************************')
     console.log('The script has been run in preview mode. To update the tax rates, ' + '\n' +
         'you can input argument "-update" in CLI to run this script.')
@@ -231,6 +231,6 @@ async function initConfigOptions() {
     }
 
     if (configOptions.dryRun) {
-        await printPreviewModeWarning()
+        printPreviewModeWarning()
     }
 })()

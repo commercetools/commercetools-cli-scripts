@@ -1,26 +1,17 @@
 # commercetools-cli-scripts
-Collection of node.js based scripts and utils for CTP resource management
+The repository consist nodejs based CLI scripts to update resources in commercetools.
 
 ## Requirements
-Download Node.js installer
-https://nodejs.org/en/download/
+- Node.js version 12.
+- Npm version 6.
+Install nodejs into your machine to be able to run the scripts, 
+follow the installation link for instructions: https://nodejs.org/en/download/
 
 ## Setup
-Inside /features/shared folder, input following command in terminal to install required javascript library
-
-```
-npm install node-fetch --save 
-npm install lodash --save 
-npm install @commercetools/sdk-client --save 
-npm intsall @commercetools/sdk-middleware-auth --save 
-npm install @commercetools/sdk-middleware-http --save 
-npm install @commercetools/sdk-middleware-queue --save 
-npm install @commercetools/api-request-builder --save 
-```
 
 Inside /features/vat-replacement folder, input following command in terminal to install required javascript library
 ```
-npm install bluebird --save
+./setup.sh
 ```
 
 To enable the script to make connection to CTP API, please input project ID, client ID and client secret as 

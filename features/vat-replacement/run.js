@@ -201,6 +201,9 @@ function initConfigOptions() {
 
 (async function main() {
     const configOptions = initConfigOptions()
+    if (!configOptions) {
+        return
+    }
     const ctpClient = ctpUtils.setUpClient(configOptions)
 
     let taxCategories = await getTaxCategories(ctpClient)

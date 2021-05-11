@@ -11,7 +11,7 @@
     "@commercetools/sdk-middleware-auth": "^6.1.4",
     "@commercetools/sdk-middleware-http": "^6.0.7",
     "@commercetools/sdk-middleware-queue": "^2.1.4",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "node-fetch": "^2.6.0"
   }
 }

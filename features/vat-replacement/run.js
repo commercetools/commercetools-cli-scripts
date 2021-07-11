@@ -1,8 +1,5 @@
-const ctpUtils = require('../shared/ctp-utils')
-const constant = require('./constant')
-const Promise = require('bluebird')
-
-const vatConstant = constant.vatConstant
+import { initConfigOptions, setUpClient, logError } from '../../shared/utils.js'
+import { vatConstant } from './constants.js'
 
 async function getTaxCategories (ctpClient) {
     const params = {
@@ -32,24 +29,22 @@ async function getTaxCategories (ctpClient) {
 
     try {
         let taxCategories = []
-        for await (const batch of ctpClient.fetchGraphQlBatches(params)) {
-            await Promise.map(batch, async (taxCategory) => {
-                taxCategories.push(taxCategory)
-            }, { concurrency: 4 })
+        for await (const batch of ctpClient.fetchPagesGraphQl(params)) {
+            if (batch.length)
+                taxCategories = taxCategories.concat(batch)
         }
         return taxCategories
     } catch (e) {
-        console.log(e)
+        logError(e)
     }
 }
 
 async function replaceTaxRate(ctpClient, taxCategoryId, updateJsonObj) {
     try {
-
         await ctpClient.update(ctpClient.builder.taxCategories, taxCategoryId,
             updateJsonObj.version, updateJsonObj.actions)
     } catch (e) {
-        console.log(e)
+        logError(e)
     }
 }
 
@@ -64,7 +59,7 @@ function getGermanValidTaxRateList(taxCategories, taxRateIdToTaxCategoryMap) {
     if (germanTaxRateList.length === 0) {
         let errMsg  =   'No valid tax rate from Germany. There is nothing to be done in your project in ' +
                         'respect to VAT.' + '\n'
-        console.error(errMsg)
+        logError(errMsg)
         return validGermanTaxRateList
     }
     let invalidGermanTaxRateList = germanTaxRateList.filter(rate =>
@@ -81,7 +76,7 @@ function getGermanValidTaxRateList(taxCategories, taxRateIdToTaxCategoryMap) {
         errMsg  = 'We are sorry, we would have to ask you to change the vat manually if applicable. ' +
             'There seems to be a special case.' + '\n'
         errMsg +=  buildTaxRateDraftJson(invalidGermanTaxRateList, taxRateIdToTaxCategoryMap)
-        console.error(errMsg)
+        logError(errMsg)
     }
     if (standardVATs.length > 1) {
         printRedundantTaxRateErrorMsg(vatConstant.TAX_RATE_STANDARD_OLD*100, standardVATs,
@@ -100,7 +95,7 @@ function printRedundantTaxRateErrorMsg(taxRateInPercentage, vatList, taxRateIdTo
     let errMsg  = 'We are sorry but there are several tax rates for "DE" with a percentage ' +
         'of ' + taxRateInPercentage + ' percent. Please update the tax rate manually. ' + '\n'
     errMsg += buildTaxRateDraftJson(vatList, taxRateIdToTaxCategoryMap)
-    console.error(errMsg)
+    logError(errMsg)
 }
 
 function buildTaxRateDraftJson(taxRateList, taxRateIdToTaxCategoryMap) {
@@ -126,7 +121,7 @@ function buildTaxRateIdToTaxCategoryMap(items) {
     return map
 }
 
-async function getUpdateJsonObj(taxRateDraft, taxRateIdToTaxCategoryMap ) {
+function getUpdateJsonObj(taxRateDraft, taxRateIdToTaxCategoryMap ) {
     const taxCategoryItem = taxRateIdToTaxCategoryMap.get(taxRateDraft.id)
 
     const updateJsonObj = {
@@ -153,15 +148,15 @@ async function processTaxRate({ctpClient, taxRateDraftList, taxRateIdToTaxCatego
                                   isDryRun}) {
     let clonedTaxRateDraftList = JSON.parse(JSON.stringify(taxRateDraftList))
     for (const taxRateDraft of clonedTaxRateDraftList) {
-        taxRateDraft.amount  = newTaxRate
-        const updateJsonObj = await getUpdateJsonObj(taxRateDraft, taxRateIdToTaxCategoryMap)
-        if (!isDryRun) {
+        taxRateDraft.amount = newTaxRate
+        const updateJsonObj = getUpdateJsonObj(taxRateDraft, taxRateIdToTaxCategoryMap)
+        if (isDryRun) {
+            console.log('Current tax rate would be replaced as below : ')
+            console.log(JSON.stringify(updateJsonObj))
+        } else {
             console.log('Start to replace tax rate ... ')
             await replaceTaxRate(ctpClient, taxRateIdToTaxCategoryMap.get(taxRateDraft.id).id, updateJsonObj)
             console.log('Update finished')
-        } else {
-            console.log('Current tax rate would be replaced as below : ')
-            console.log(JSON.stringify(updateJsonObj))
         }
     }
 }
@@ -175,36 +170,22 @@ function printPreviewModeWarning() {
     console.log('********************************************************************')
 }
 
-function initConfigOptions() {
-    const args = process.argv.slice(2);
-    const configOptions = {
-        ctp : {
-            projectKey : process.env.PROJECT_KEY,
-            clientId : process.env.CLIENT_ID,
-            clientSecret : process.env.CLIENT_SECRET
-        },
-        dryRun: true
-    }
-
-    // Check environment variables
-    if (!configOptions.ctp.projectKey || !configOptions.ctp.clientId || !configOptions.ctp.clientSecret) {
-        console.error('Please set project key, client ID and client secret in environment variables')
-        return
-    }
-
-    // Check update mode / preview mode
-    if (args.length>0 && args[0] === '-update') {
-        configOptions.dryRun = false
-    }
-    return configOptions
-}
-
 (async function main() {
     const configOptions = initConfigOptions()
     if (!configOptions) {
         return
     }
-    const ctpClient = ctpUtils.setUpClient(configOptions)
+
+    const args = process.argv.slice(2);
+
+    // Check update mode / preview mode
+    if (args.length>0 && args[0] === '-update') {
+        configOptions.dryRun = false
+    } else {
+        configOptions.dryRun = true
+    }
+
+    const ctpClient = setUpClient(configOptions)
 
     let taxCategories = await getTaxCategories(ctpClient)
 

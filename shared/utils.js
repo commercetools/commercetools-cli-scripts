@@ -7,7 +7,7 @@ import {createAuthMiddlewareForClientCredentialsFlow} from '@commercetools/sdk-m
 import _ from 'lodash'
 import util from 'util'
 
-function createCtpClient({clientId, clientSecret, projectKey, concurrency = 4}) {
+function createCtpClient({clientId, clientSecret, projectKey, concurrency = 20}) {
     const AUTH_HOST = process.env.AUTH_HOST || 'https://auth.europe-west1.gcp.commercetools.com'
     const API_HOST = process.env.API_HOST || 'https://api.europe-west1.gcp.commercetools.com'
     const authMiddleware = createAuthMiddlewareForClientCredentialsFlow({

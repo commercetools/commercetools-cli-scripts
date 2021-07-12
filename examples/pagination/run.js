@@ -17,7 +17,7 @@ function getQueryData() {
     }
 }
 
-async function processOrders (ctpClient) {
+async function paginateOrders (ctpClient) {
     await paginateWithGraphQl(ctpClient, getQueryData())
     await paginateWithRest(ctpClient, getQueryData())
     await paginateWithSdk(ctpClient, getQueryData())
@@ -82,5 +82,5 @@ async function paginateWithSdk(ctpClient, { variables, endpoint }) {
         return
     }
     const ctpClient = setUpClient(configOptions)
-    processOrders(ctpClient)
+    paginateOrders(ctpClient)
 })()

@@ -1,4 +1,6 @@
-import { initConfigOptions, setUpClient, logError } from '../../shared/utils.js'
+import { initConfigOptions } from '../../utils/config.js'
+import { setUpClient } from '../../utils/client.js'
+import { logError } from '../../utils/logger.js'
 import { vatConstant } from './constants.js'
 
 async function getTaxCategories (ctpClient) {

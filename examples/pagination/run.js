@@ -1,4 +1,7 @@
-import { initConfigOptions, setUpClient, logError } from '../../shared/utils.js'
+import { initConfigOptions } from '../../utils/config.js'
+import { setUpClient } from '../../utils/client.js'
+import { logError } from '../../utils/logger.js'
+
 
 function getQueryData() {
     return {

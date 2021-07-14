@@ -3,7 +3,10 @@ import {createClient} from '@commercetools/sdk-client'
 import {createRequestBuilder} from '@commercetools/api-request-builder'
 import {createHttpMiddleware} from '@commercetools/sdk-middleware-http'
 import {createQueueMiddleware} from '@commercetools/sdk-middleware-queue'
+import {createUserAgentMiddleware} from '@commercetools/sdk-middleware-user-agent'
 import {createAuthMiddlewareForClientCredentialsFlow} from '@commercetools/sdk-middleware-auth'
+import fs from 'fs'
+const packageJson = JSON.parse(fs.readFileSync('../../package.json'))
 import _ from 'lodash'
 import util from 'util'
 
@@ -29,9 +32,17 @@ function createCtpClient({clientId, clientSecret, projectKey, concurrency = 20})
         concurrency
     })
 
+    const userAgentMiddleware = createUserAgentMiddleware({
+        libraryName: packageJson.name,
+        libraryVersion: packageJson.version,
+        contactUrl: packageJson.homepage,
+        contactEmail: packageJson.author.email
+    })
+
     return createClient({
         middlewares: [
             authMiddleware,
+            userAgentMiddleware,
             httpMiddleware,
             queueMiddleware
         ]

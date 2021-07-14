@@ -8,10 +8,8 @@ import _ from 'lodash'
 import util from 'util'
 
 function createCtpClient({clientId, clientSecret, projectKey, concurrency = 20}) {
-    const AUTH_HOST = process.env.AUTH_HOST || 'https://auth.europe-west1.gcp.commercetools.com'
-    const API_HOST = process.env.API_HOST || 'https://api.europe-west1.gcp.commercetools.com'
     const authMiddleware = createAuthMiddlewareForClientCredentialsFlow({
-        host: AUTH_HOST,
+        host: process.env.CTP_AUTH_URL,
         projectKey,
         credentials: {
             clientId,
@@ -22,7 +20,7 @@ function createCtpClient({clientId, clientSecret, projectKey, concurrency = 20})
 
     const httpMiddleware = createHttpMiddleware({
         maskSensitiveHeaderData: true,
-        host: API_HOST,
+        host: process.env.CTP_API_URL,
         enableRetry: true,
         fetch
     })
@@ -181,16 +179,17 @@ export function setUpClient(config) {
 export function initConfigOptions() {
     const configOptions = {
         ctp : {
-            projectKey : process.env.PROJECT_KEY,
-            clientId : process.env.CLIENT_ID,
-            clientSecret : process.env.CLIENT_SECRET
+            projectKey: process.env.CTP_PROJECT_KEY,
+            clientId: process.env.CTP_CLIENT_ID,
+            clientSecret: process.env.CTP_CLIENT_SECRET,
+            apiUrl: process.env.CTP_API_URL,
+            authUrl: process.env.CTP_AUTH_URL
         }
     }
 
-    if (!configOptions.ctp.projectKey || !configOptions.ctp.clientId || !configOptions.ctp.clientSecret) {
-        console.error('Please set project key, client ID and client secret in environment variables')
-        return
-    }
+    if (!configOptions.ctp.projectKey || !configOptions.ctp.clientId || !configOptions.ctp.clientSecret
+        || !configOptions.ctp.apiUrl || !configOptions.ctp.authUrl)
+        throw new Error('Required environment variables missing: CTP_PROJECT_KEY, CTP_CLIENT_ID, CTP_CLIENT_SECRET, CTP_API_URL, CTP_AUTH_URL')
 
     return configOptions
 }

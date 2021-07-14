@@ -15,9 +15,11 @@ npm install
 - Export commercetools credentials as environment variables:
 
 ```
-export PROJECT_KEY='<Your_Project_Key>' \
-export CLIENT_ID='<Your_Client_ID>' \
-export CLIENT_SECRET='<Your_Client_Secret>' 
+export CTP_PROJECT_KEY='<Your_Project_Key>' \
+export CTP_CLIENT_ID='<Your_Client_ID>' \
+export CTP_CLIENT_SECRET='<Your_Client_Secret>' \
+export CTP_API_URL='https://api.europe-west1.gcp.commercetools.com' \
+export CTP_AUTH_URL='https://auth.europe-west1.gcp.commercetools.com'
 ```
 - Run the script:
 ```

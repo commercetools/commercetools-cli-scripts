@@ -1,45 +1,27 @@
 # commercetools-cli-scripts
-The repository consist nodejs based CLI scripts to update resources in commercetools.
+The repository provides a set of tools and examples based on commercetools nodejs SDK.
 
 ## Requirements
-- Node.js version 12.
-- Npm version 6.
-Install nodejs into your machine to be able to run the scripts, 
-follow the installation link for instructions: https://nodejs.org/en/download/
+- Node.js version 16 ([install](https://nodejs.org/en/download))
+- Npm version 7
+- commercetools project credentials
 
-## Setup
+## How to run
+- Navigate with your terminal to the main directory and run:
+```
+npm install
+```
+- Navigate with your terminal to the desired script folder with the file named `run.js`.
+- Export commercetools credentials as environment variables:
 
-Inside /features/vat-replacement folder, input following command in terminal to install required javascript library
 ```
-./setup.sh
+export CTP_PROJECT_KEY='<Your_Project_Key>' \
+export CTP_CLIENT_ID='<Your_Client_ID>' \
+export CTP_CLIENT_SECRET='<Your_Client_Secret>' \
+export CTP_API_URL='https://api.europe-west1.gcp.commercetools.com' \
+export CTP_AUTH_URL='https://auth.europe-west1.gcp.commercetools.com'
 ```
-
-To enable the script to make connection to CTP API, please input project ID, client ID and client secret as 
-environment variables in terminal.
-```
-export PROJECT_KEY='<Your_Project_Key>' \
-export CLIENT_ID='<Your_Client_ID>' \
-export CLIENT_SECRET='<Your_Client_Secret>' 
-```
-
-## Run
-To run the script under preview mode, please go to the /features/vat-replacement folder and input following command
+- Run the script:
 ```
 node run.js
 ```
-It will print out resultant JSON including a new VAT rate. Customers can verify the correctness of VAT details. 
-
-Script triggers warnings in following conditions :
-1. None of tax categories / tax rates under specific project is from Germany.
-2. Some tax rates are found which are not VAT. i.e. Neither standard VAT 19% nor reduced VAT 7%. 
-3. More than one standard VAT / reduced VAT are found.
-
-----------------
-
-To run the script under update mode, please go to the /features/vat-replacement folder and input following command
-```
-node run.js -update
-```
-BE CAREFUL!!! Under update mode, script replaces the current VAT rates by new VAT rates automatically. 
-Please resolve all warnings under preview mode before you decide to run it under update mode.
- 
